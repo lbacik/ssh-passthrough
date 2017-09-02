@@ -20,15 +20,29 @@ The idea is to use the "user" part from ssh login to pass container and user nam
 
     $ ssh container/user@ssh-passthrough
 
-Very similar idea has been mentioned in comment: () - but unfortunately there is no more information from the author side since the time of that discussion, so  it is unknown if this functionality is going to be finally included in the docker-ssh or not. 
+Very similar idea has been mentioned in https://github.com/jeroenpeeters/docker-ssh/issues/4 - but unfortunately there is no more information from the author since the time of that discussion, so  it is unknown if this functionality is going to be finally included in the docker-ssh or not. 
 
 At first I have just tryied to investigate the problem with using one container to handle all ssh connections, just of curiosity and because I have been looking for  a project to practice programming in node.js. But once this experiment has started to work I decided to publish this work - it is not very functional righ now, but who knows what the future brings :)
 
 ## Current status 
 
-Please notice that curently there is no authentication method implemented - ANY! Each connection will be accepted and redirect to requested container - the "/user" part in showed above example has no meaning for the time being, you will be alway connected as a default user configured for a given container (so generally the "root" user). 
+Please notice that curently there is no authentication method implemented - ANY! Each connection will be accepted and redirect to requested container - the "/user" part in showed above example has no meaning for the time being, you will be always connected as a default user configured for a given container (so generally the "root" user). 
 
 Right now I'm focusing on general code architecture for setting up connections with appropriate containers.
+
+## How to use it
+
+Example of creating the container:
+
+     $ docker run --rm -d \
+        -p LOCALADDRESS:2222:22/tcp \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        --net YOUR_PROJECT_NETWORK \
+        lbacik/ssh-passthrough
+
+Example of connecting to the particular "container" within YOUR_PROJECT_NETWORK:
+
+    $ ssh -p 2222 container@LOCALADDRESS
 
 ## Future plans
 
