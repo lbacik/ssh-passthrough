@@ -1,0 +1,23 @@
+{
+  "name": "ssh-passthrough",
+  "version": "0.0.1",
+  "description": "",
+  "main": "ssh-passthrough",
+  "dependencies": {
+    "buffer-equal-constant-time": "^1.0.1",
+    "commander": "^2.11.0",
+    "crypto": "^1.0.1",
+    "dockerode": "^2.5.0",
+    "ssh2": "^0.5.5"
+  },
+  "devDependencies": {
+    "eslint": "^4.5.0",
+    "eslint-config-airbnb-base": "^11.3.2",
+    "eslint-plugin-import": "^2.7.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Lukasz Bacik",
+  "license": "GPL 2"
+}

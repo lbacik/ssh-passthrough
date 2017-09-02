@@ -1,0 +1,14 @@
+extends: airbnb-base
+rules:
+  class-methods-use-this:
+    - error
+    -
+      exceptMethods:
+        - init
+        - options
+        - closeStream
+  no-unused-vars:
+    - warn
+  no-shadow:
+    - warn
+    

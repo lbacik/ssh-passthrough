@@ -1,0 +1,55 @@
+#!/usr/bin/env node
+//
+// Copyright (C) 2015 Lukasz Bacik <mail@luka.sh>
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+const program = require('commander');
+const fs = require('fs');
+const Server = require('./src/ssh-server');
+
+const DEFAULT_PORT = 22;
+const DEFAULT_SHELL = '/bin/sh';
+const DEFAULT_TARGET = 'shell';
+
+const DEFAULT_DOCKER_SOCKET = '/var/run/docker.sock';
+const DEFAULT_DOCKER_SEPARATOR = '/';
+
+program
+  .version('0.0.1')
+  .option('--server-prv-key [path]', '')
+  .option('-a, --address [ip]', '', '')
+  .option('-p, --port [port]', '', DEFAULT_PORT)
+  .option('--target [target]', '', DEFAULT_TARGET)
+  .option('-s, --shell [shell]', '', DEFAULT_SHELL)
+  .option('--docker-socket [socket]', '', DEFAULT_DOCKER_SOCKET)
+  .option('--docker-separator [separator]', '', DEFAULT_DOCKER_SEPARATOR)
+  .parse(process.argv);
+
+const passThroughOptions = {
+  target: program.target,
+  shell: program.shell,
+  dockerSocket: program.dockerSocket,
+  dockerSeparator: program.dockerSeparator,
+};
+
+const serverOptions = {
+  hostKeys: [fs.readFileSync(program.serverPrvKey)],
+  banner: `SSH PASS THROUGH SERVER version: ${program.opts().version}`,
+};
+
+new Server(passThroughOptions, serverOptions).listen(program.port, '', function () {
+  console.log(`Listening on port ${this.address().port}`);
+});
