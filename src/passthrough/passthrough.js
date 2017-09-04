@@ -28,6 +28,12 @@ class Passthrough {
   options(data) {}
 
   init() {}
+
+  executeCommand(clientStream, command) {}
+
+  executeShell(clientStream) {}
+
+  resizeTerm(info) {}
 }
 
 module.exports = Passthrough;

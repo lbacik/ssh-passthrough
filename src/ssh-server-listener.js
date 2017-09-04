@@ -32,33 +32,32 @@ function connectionRequest(client) {
         this.termInfo = info;
       });
 
-      session.on('exec', (accept, reject, info) => {
-        console.log('exec - not implemented yet!');
+      session.on('window-change', (accept, reject, info) => {
+        passthrough.resizeTerm(info);
+      });
+
+      session.once('exec', (accept, reject, info) => {
+        const channel = accept();
+        passthrough = createPassthrough(
+          this.options, 
+          this.termInfo,
+          channel,
+          this.userStr
+        );
+        passthrough.executeCommand(channel, info.command);
+        execute(channel, passthrough)
       });
 
       session.on('shell', (accept, reject) => {
-        console.log('shell!');
-
         const channel = accept();
-        channel.write('starting shell...\n\r');
-
-        const passthrough = passThroughFactory(this.options.target);
-        passthrough.options(this.options);
-        passthrough.init();
-
-        passthrough.setClientChannel(channel, this.userStr);
-
-        channel.on('data', (data) => {
-          passthrough.passData(data);
-        });
-
-        channel.on('error', (e) => {
-          console.log(`channel error ${e}`);
-        });
-
-        channel.on('end', () => {
-          console.log('channel end...');
-        });
+        passthrough = createPassthrough(
+          this.options, 
+          this.termInfo,
+          channel,
+          this.userStr
+        );        
+        passthrough.executeShell(channel);  
+        execute(channel, passthrough)  
       });
 
       session.on('signal', (accept, reject, info) => {
@@ -68,6 +67,29 @@ function connectionRequest(client) {
   }).on('end', () => {
     console.log('Client disconnected');
   });
+}
+
+function execute(channel, passthrough) {  
+  channel.on('data', (data) => {
+    passthrough.passData(data);
+  });
+
+  channel.on('error', (e) => {
+    console.log(`channel error ${e}`);
+  });
+
+  channel.on('end', () => {
+    console.log('channel end...');
+  });
+}
+
+function createPassthrough(options, termInfo, channel, userStr) {
+  const passthrough = passThroughFactory(options.target);
+  options.termInfo = termInfo;
+  passthrough.options(options);
+  passthrough.init();
+  passthrough.setClientChannel(channel, userStr);
+  return passthrough;
 }
 
 module.exports = connectionRequest;
