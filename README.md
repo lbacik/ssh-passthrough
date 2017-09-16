@@ -1,12 +1,16 @@
 # ssh-passthrough
 
-Version 0.0.1 - this should say a lot :) - it is only the first draft of this solution.
+**Version 0.1**
 
-## Goals for version 0.1
+## Goals for version 0.2
 
-* possibility of connecting to each container within a docker network (shell mode)
-* possibility of executing commands remotely (exec mode)
-* adjusting terminal window size "on the fly"
+* to add authorization
+
+### Goals for version 0.1
+
+* [DONE] possibility of connecting to each container within a docker network (shell mode)
+* [DONE] possibility of executing commands remotely (exec mode)
+* [DONE] ajusting terminal window size "on the fly"
 
 ## A few words about...
 
