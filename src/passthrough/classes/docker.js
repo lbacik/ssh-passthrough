@@ -23,6 +23,7 @@ class SSHDocker extends Passthrough {
     this.socketPath = data.dockerSocket;
     this.shellName = data.shell;
     this.separator = data.separator;
+    this.termInfo = data.termInfo;
   }
 
   init() {
@@ -36,20 +37,32 @@ class SSHDocker extends Passthrough {
   setClientChannel(clientChannel, data) {
     this.setUserAndContainerName(data);
     this.container = this.docker.getContainer(this.containerName);
-    this.shellExecute(clientChannel);
   }
 
-  shellExecute(clientStream) {
+  executeCommand(clientStream, command) {
+    const cmd = [this.shellName, '-c', command];
+    this.execute(clientStream, cmd);
+  }
+
+  executeShell(clientStream) {
+    const cmd = [this.shellName];
+    this.execute(clientStream, cmd);
+  }
+
+  execute(clientStream, cmd) {
     this.container.exec({
-      Cmd: [this.shellName],
+      Cmd: cmd,
       AttachStdin: true,
       AttachStdout: true,
+      AttachStderr: true,
       Tty: true,
     },
     (err, exec) => {
       if (err) {
         console.log(`container exec error! ${err}`);
       }
+
+      this.exec = exec;
 
       exec.start({ stdin: true, Tty: true }, (execErr, stream) => {
         if (err) {
@@ -71,8 +84,14 @@ class SSHDocker extends Passthrough {
           console.log('container exec end');
           this.closeStream(clientStream);
         });
+
+        stream.write('export TERM=linux;\n');
+
+        if (this.termInfo) {
+          this.resizeTerm(this.termInfo);
+        }
       });
-    });
+    });    
   }
 
   setUserAndContainerName(str) {
@@ -82,6 +101,12 @@ class SSHDocker extends Passthrough {
     console.log(`user: ${userData[1]}`);
 
     this.containerName = userData[0];
+  }
+
+  resizeTerm(termInfo) {
+    if(termInfo) {
+      this.exec.resize({h: termInfo.rows, w: termInfo.cols});
+    }
   }
 
   closeStream(stream) {
