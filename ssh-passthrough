@@ -28,7 +28,7 @@ const DEFAULT_DOCKER_SOCKET = '/var/run/docker.sock';
 const DEFAULT_DOCKER_SEPARATOR = '/';
 
 program
-  .version('0.0.1')
+  .version('0.1.1')
   .option('--server-prv-key [path]', '')
   .option('-a, --address [ip]', '', '')
   .option('-p, --port [port]', '', DEFAULT_PORT)
