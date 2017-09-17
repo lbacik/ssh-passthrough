@@ -1,6 +1,7 @@
-FROM node:6-alpine
+FROM hypriot/rpi-node:6-slim
 
-RUN apk add --no-cache openssh
+RUN apt-get -y update \
+	&& apt-get -y install openssh-client
 
 RUN mkdir /project
 COPY . /project
