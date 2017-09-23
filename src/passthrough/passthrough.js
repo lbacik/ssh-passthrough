@@ -17,17 +17,17 @@
 
 class Passthrough {
   passData(data) {
-    console.log(`Passthrough data: (${data.toString('hex')}) ${data.toString()}`);
-    this.clientStream.write(data.toString());
+    console.log(`Passthrough data: (${data.toString('hex')}) ${data.toString()}`)
+    this.clientStream.write(data.toString())
   }
 
   setClientChannel(channel, data) {
-    this.clientStream = channel;
+    this.clientStream = channel
   }
 
-  options(data) {}
-
-  init() {}
+  init(options) {
+    this.options = options
+  }
 
   executeCommand(clientStream, command) {}
 
@@ -36,4 +36,4 @@ class Passthrough {
   resizeTerm(info) {}
 }
 
-module.exports = Passthrough;
+module.exports = Passthrough

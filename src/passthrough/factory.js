@@ -15,26 +15,26 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-const Dummy = require('./passthrough');
-const Shell = require('./classes/shell');
-const Docker = require('./classes/docker');
+const Dummy = require('./passthrough')
+const Shell = require('./classes/shell')
+const Docker = require('./classes/docker')
 
 function create(name) {
   let obj;
 
   switch (name) {
     case 'dummy':
-      obj = new Dummy();
-      break;
+      obj = new Dummy()
+      break
     case 'docker':
-      obj = new Docker();
-      break;
+      obj = new Docker()
+      break
     case 'shell':
     default:
-      obj = new Shell();
+      obj = new Shell()
   }
 
-  return obj;
+  return obj
 }
 
-module.exports = create;
+module.exports = create
