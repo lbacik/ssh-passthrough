@@ -15,34 +15,41 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-const Passthrough = require('../passthrough');
-const exec = require('child_process').exec;
+const Passthrough = require('../passthrough')
+const exec = require('child_process').exec
 
 // it is only a placeholder for the time being
 class Shell extends Passthrough {
-  constructor() {
-    super();
-    this.buffor = '';
+
+  constructor(logger) {
+    super(logger);
+    this.buffor = ''
+    this.NOTICE = 'SHELL "TARGET" WORKS ONLY ON THE MOST BASE LEVEL RIGHT NOW - PLEASE USE ONLY FOR TESTING PURPOSE!\r\n'
+    this.logger.info(this.NOTICE)
   }
 
   passData(data) {
-    console.log(data.toString('hex'));
+
+    this.logger.debug(data.toString('hex'))
 
     if (data.toString('hex') === '0d') {
-      console.log(this.buffor);
-      exec(this.buffor, function (error, stdout, stderr) {
-        console.log(`command stdout: ${stdout}`);
-        console.log(`command stderr: ${stderr}`);
-
-        this.clientStream.write(stdout);
-        this.clientStream.write('\n\r');
-
-        this.buffor = '';
-      });
+      this.logger.debug(this.buffor)
+      exec(this.buffor, (error, stdout, stderr) => {
+        this.logger.debug(`command stdout: ${stdout}`)
+        this.logger.debug(`command stderr: ${stderr}`)
+        this.clientStream.write(stdout)
+        this.clientStream.write('\n\r')
+        this.buffor = ''
+      })
     }
 
-    this.buffor = this.buffor + data.toString();
+    this.buffor = this.buffor + data.toString()
+  }
+
+  setClientChannel(channel) {
+    this.clientStream = channel
+    this.clientStream.write(this.NOTICE)
   }
 }
 
-module.exports = Shell;
+module.exports = Shell

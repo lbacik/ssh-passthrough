@@ -15,26 +15,34 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-const Dummy = require('./passthrough');
-const Shell = require('./classes/shell');
-const Docker = require('./classes/docker');
+const Dummy = require('./passthrough')
+const Shell = require('./classes/shell')
+const Docker = require('./classes/docker')
+const Dockerode = require('dockerode')
 
-function create(name) {
-  let obj;
+class PassthroughFactory {
 
-  switch (name) {
-    case 'dummy':
-      obj = new Dummy();
-      break;
-    case 'docker':
-      obj = new Docker();
-      break;
-    case 'shell':
-    default:
-      obj = new Shell();
+  static create(name, options, logger) {
+    let obj;
+
+    switch (name) {
+      case 'dummy':
+        obj = new Dummy(logger)
+        break
+      case 'docker':
+        obj = this.createDocker(options, logger)
+        break
+      case 'shell':
+      default:
+        obj = new Shell(logger)
+    }
+    return obj
   }
 
-  return obj;
+  static createDocker(options, logger) {
+    const dockerode = new Dockerode({ socketPath: options.dockerSocket })
+    return new Docker(dockerode, options, logger)
+  }
 }
 
-module.exports = create;
+module.exports = PassthroughFactory
