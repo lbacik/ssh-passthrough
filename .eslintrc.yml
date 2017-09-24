@@ -4,11 +4,19 @@ rules:
     - error
     -
       exceptMethods:
-        - init
-        - options
         - closeStream
+        - execute
+        - executeCommand
+        - executeShell
+        - resizeTerm
   no-unused-vars:
     - warn
   no-shadow:
     - warn
-    
+  semi:
+    - off
+  padded-blocks:
+    - off
+  comma-dangle:
+    - off
+      

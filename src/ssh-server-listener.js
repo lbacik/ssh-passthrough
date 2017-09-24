@@ -15,81 +15,76 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-const passThroughFactory = require('./passthrough/factory');
+class SshPassthroughListener {
 
-function connectionRequest(client) {
-  console.log('Client connected!');
+  constructor(options, PassthroughFactory, logger) {
+    this.options = options
+    this.logger = logger
+    this.passthrough = PassthroughFactory.create(
+      this.options.target,
+      this.options,
+      this.logger
+    )
+  }
 
-  client.on('authentication', (ctx) => {
-    this.userStr = ctx.username;
-    ctx.accept();
-  }).on('ready', () => {
-    client.on('session', (accept, reject) => {
-      const session = accept();
+  connectionRequest(client) {
 
-      session.on('pty', (accept, reject, info) => {
-        accept();
-        this.termInfo = info;
-      });
+    this.logger.debug('Client connected!')
 
-      session.on('window-change', (accept, reject, info) => {
-        passthrough.resizeTerm(info);
-      });
+    client.on('authentication', (ctx) => {
+      this.userStr = ctx.username
+      ctx.accept()
+      this.logger.debug(`client authenticated - user: ${this.userStr}`)
+    }).on('ready', () => {
+      client.on('session', (accept, reject) => {
+        const session = accept()
 
-      session.once('exec', (accept, reject, info) => {
-        const channel = accept();
-        passthrough = createPassthrough(
-          this.options, 
-          this.termInfo,
-          channel,
-          this.userStr
-        );
-        passthrough.executeCommand(channel, info.command);
-        execute(channel, passthrough)
-      });
+        session.on('pty', (accept, reject, info) => {
+          accept()
+          this.termInfo = info
+          this.passthrough.setTermInfo(info)
+        });
 
-      session.on('shell', (accept, reject) => {
-        const channel = accept();
-        passthrough = createPassthrough(
-          this.options, 
-          this.termInfo,
-          channel,
-          this.userStr
-        );        
-        passthrough.executeShell(channel);  
-        execute(channel, passthrough)  
-      });
+        session.on('window-change', (accept, reject, info) => {
+          this.passthrough.resizeTerm(info)
+        });
 
-      session.on('signal', (accept, reject, info) => {
-        console.log(`session signal: ${info.name}`);
-      });
+        session.once('exec', (accept, reject, info) => {
+          const channel = accept()
+          this.passthrough.setClientChannel(channel, this.userStr)
+          this.passthrough.executeCommand(channel, info.command)
+          this.execute(channel, this.passthrough)
+        });
+
+        session.on('shell', (accept, reject) => {
+          const channel = accept()
+          this.passthrough.setClientChannel(channel, this.userStr)
+          this.passthrough.executeShell(channel)
+          this.execute(channel, this.passthrough)
+        });
+
+        session.on('signal', (accept, reject, info) => {
+          this.logger.debug(`session signal: ${info.name}`)
+        })
+      })
+    }).on('end', () => {
+      this.logger.info('Client disconnected')
     });
-  }).on('end', () => {
-    console.log('Client disconnected');
-  });
+  }
+
+  execute(channel, passthrough) {
+    channel.on('data', (data) => {
+      passthrough.passData(data)
+    });
+
+    channel.on('error', (e) => {
+      this.logger.error(`channel error ${e}`)
+    });
+
+    channel.on('end', () => {
+      this.logger.debug('channel end...')
+    });
+  }
 }
 
-function execute(channel, passthrough) {  
-  channel.on('data', (data) => {
-    passthrough.passData(data);
-  });
-
-  channel.on('error', (e) => {
-    console.log(`channel error ${e}`);
-  });
-
-  channel.on('end', () => {
-    console.log('channel end...');
-  });
-}
-
-function createPassthrough(options, termInfo, channel, userStr) {
-  const passthrough = passThroughFactory(options.target);
-  options.termInfo = termInfo;
-  passthrough.options(options);
-  passthrough.init();
-  passthrough.setClientChannel(channel, userStr);
-  return passthrough;
-}
-
-module.exports = connectionRequest;
+module.exports = SshPassthroughListener

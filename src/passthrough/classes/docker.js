@@ -15,38 +15,33 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-const Passthrough = require('../passthrough');
-const Docker = require('dockerode');
+const Passthrough = require('../passthrough')
 
 class SSHDocker extends Passthrough {
-  options(data) {
-    this.socketPath = data.dockerSocket;
-    this.shellName = data.shell;
-    this.separator = data.separator;
-    this.termInfo = data.termInfo;
-  }
 
-  init() {
-    this.docker = new Docker({ socketPath: this.socketPath });
+  constructor(docker, options, logger) {
+    super(logger)
+    this.docker = docker
+    this.options = options
   }
 
   passData(data) {
-    this.containerStream.write(data);
+    this.containerStream.write(data)
   }
 
   setClientChannel(clientChannel, data) {
-    this.setUserAndContainerName(data);
-    this.container = this.docker.getContainer(this.containerName);
+    this.setUserAndContainerName(data)
+    this.container = this.docker.getContainer(this.containerName)
   }
 
   executeCommand(clientStream, command) {
-    const cmd = [this.shellName, '-c', command];
-    this.execute(clientStream, cmd);
+    const cmd = [this.options.shell, '-c', command]
+    this.execute(clientStream, cmd)
   }
 
   executeShell(clientStream) {
-    const cmd = [this.shellName];
-    this.execute(clientStream, cmd);
+    const cmd = [this.options.shell]
+    this.execute(clientStream, cmd)
   }
 
   execute(clientStream, cmd) {
@@ -59,60 +54,58 @@ class SSHDocker extends Passthrough {
     },
     (err, exec) => {
       if (err) {
-        console.log(`container exec error! ${err}`);
+        this.logger.error(`container exec error! ${err}`)
       }
 
-      this.exec = exec;
+      this.exec = exec
 
       exec.start({ stdin: true, Tty: true }, (execErr, stream) => {
         if (err) {
-          console.log(`exec start error! ${execErr}`);
+          this.logger.error(`exec start error! ${execErr}`)
         }
 
-        this.containerStream = stream;
+        this.containerStream = stream
 
         stream.on('data', (data) => {
-          clientStream.write(data.toString());
+          clientStream.write(data.toString())
         });
 
         stream.on('error', (streamErr) => {
-          console.log(`container exec stream error ${streamErr}`);
-          this.closeStream(clientStream);
-        });
+          this.logger.error(`container exec stream error ${streamErr}`)
+          this.closeStream(clientStream)
+        })
 
         stream.on('end', () => {
-          console.log('container exec end');
-          this.closeStream(clientStream);
-        });
+          this.logger.info('container exec end')
+          this.closeStream(clientStream)
+        })
 
-        stream.write('export TERM=linux;\n');
+        stream.write(`# SSH-PASSTHROUGH v${this.options.version}\n`)
+        stream.write('export TERM=linux;\necho\n')
 
-        if (this.termInfo) {
-          this.resizeTerm(this.termInfo);
+        if (this.options.termInfo) {
+          this.resizeTerm(this.options.termInfo)
         }
-      });
-    });    
+      })
+    })
   }
 
   setUserAndContainerName(str) {
-    const userData = str.split('/', 2);
-
-    console.log(`container: ${userData[0]}`);
-    console.log(`user: ${userData[1]}`);
-
-    this.containerName = userData[0];
+    const userData = str.split(this.options.separator, 2)
+    this.logger.debug(`container: ${userData[0]}, user: ${userData[1]}`)
+    this.containerName = userData[0]
   }
 
   resizeTerm(termInfo) {
-    if(termInfo) {
-      this.exec.resize({h: termInfo.rows, w: termInfo.cols});
+    if (termInfo) {
+      this.exec.resize({ h: termInfo.rows, w: termInfo.cols })
     }
   }
 
   closeStream(stream) {
-    stream.exit(0);
-    stream.end();
+    stream.exit(0)
+    stream.end()
   }
 }
 
-module.exports = SSHDocker;
+module.exports = SSHDocker
