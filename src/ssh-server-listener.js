@@ -17,19 +17,24 @@
 
 class SshPassthroughListener {
 
-  constructor(options, PassthroughFactory) {
+  constructor(options, PassthroughFactory, logger) {
     this.options = options
-    this.PassthroughFactory = PassthroughFactory
-    this.passthrough = this.createPassthrough()
+    this.logger = logger
+    this.passthrough = PassthroughFactory.create(
+      this.options.target,
+      this.options,
+      this.logger
+    )
   }
 
   connectionRequest(client) {
 
-    console.log('Client connected!')
+    this.logger.debug('Client connected!')
 
     client.on('authentication', (ctx) => {
       this.userStr = ctx.username
       ctx.accept()
+      this.logger.debug(`client authenticated - user: ${this.userStr}`)
     }).on('ready', () => {
       client.on('session', (accept, reject) => {
         const session = accept()
@@ -37,6 +42,7 @@ class SshPassthroughListener {
         session.on('pty', (accept, reject, info) => {
           accept()
           this.termInfo = info
+          this.passthrough.setTermInfo(info)
         });
 
         session.on('window-change', (accept, reject, info) => {
@@ -58,11 +64,11 @@ class SshPassthroughListener {
         });
 
         session.on('signal', (accept, reject, info) => {
-          console.log(`session signal: ${info.name}`)
+          this.logger.debug(`session signal: ${info.name}`)
         })
       })
     }).on('end', () => {
-      console.log('Client disconnected')
+      this.logger.info('Client disconnected')
     });
   }
 
@@ -72,18 +78,12 @@ class SshPassthroughListener {
     });
 
     channel.on('error', (e) => {
-      console.log(`channel error ${e}`)
+      this.logger.error(`channel error ${e}`)
     });
 
     channel.on('end', () => {
-      console.log('channel end...')
+      this.logger.debug('channel end...')
     });
-  }
-
-  createPassthrough() {
-    const passthrough = this.PassthroughFactory(this.options.target)
-    passthrough.init(this.options)
-    return passthrough
   }
 }
 

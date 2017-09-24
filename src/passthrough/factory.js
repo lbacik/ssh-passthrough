@@ -18,23 +18,31 @@
 const Dummy = require('./passthrough')
 const Shell = require('./classes/shell')
 const Docker = require('./classes/docker')
+const Dockerode = require('dockerode')
 
-function create(name) {
-  let obj;
+class PassthroughFactory {
 
-  switch (name) {
-    case 'dummy':
-      obj = new Dummy()
-      break
-    case 'docker':
-      obj = new Docker()
-      break
-    case 'shell':
-    default:
-      obj = new Shell()
+  static create(name, options, logger) {
+    let obj;
+
+    switch (name) {
+      case 'dummy':
+        obj = new Dummy(logger)
+        break
+      case 'docker':
+        obj = this.createDocker(options, logger)
+        break
+      case 'shell':
+      default:
+        obj = new Shell(logger)
+    }
+    return obj
   }
 
-  return obj
+  static createDocker(options, logger) {
+    const dockerode = new Dockerode({ socketPath: options.dockerSocket })
+    return new Docker(dockerode, options, logger)
+  }
 }
 
-module.exports = create
+module.exports = PassthroughFactory

@@ -22,6 +22,7 @@ const Server = require('ssh2').Server
 const pjson = require('./package.json')
 const PassthroughFactory = require('./src/passthrough/factory')
 const SshPassthroughListener = require('./src/ssh-server-listener.js')
+const winston = require('winston');
 
 const VERSION = pjson.version
 const DEFAULT_PORT = 22
@@ -32,6 +33,13 @@ const DEFAULT_SERVER_KEY_FILE = 'server-key'
 
 const DEFAULT_DOCKER_SOCKET = '/var/run/docker.sock'
 const DEFAULT_DOCKER_SEPARATOR = '/'
+
+const logger = new (winston.Logger)({
+  transports: [
+    new (winston.transports.Console)()
+  ],
+  level: 'debug'
+});
 
 program
   .version(VERSION)
@@ -60,15 +68,15 @@ let hostPrvKey
 try {
   hostPrvKey = fs.readFileSync(serverPrvKey)
 } catch (e) {
-  console.log(e)
+  logger.error(e)
 }
 
 new Server({
   hostKeys: [hostPrvKey],
 }, (client) => {
   const sshPassthroughListener =
-      new SshPassthroughListener(passthroughOptions, PassthroughFactory)
+      new SshPassthroughListener(passthroughOptions, PassthroughFactory, logger)
   sshPassthroughListener.connectionRequest(client)
 }).listen(serverPort, serverAddress, () => {
-  console.log(`Listening on port ${serverAddress}:${serverPort}`)
+  logger.info(`Listening on port ${serverAddress}:${serverPort}`)
 })

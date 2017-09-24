@@ -4,8 +4,6 @@ rules:
     - error
     -
       exceptMethods:
-        - init
-        - options
         - closeStream
         - execute
         - executeCommand

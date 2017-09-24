@@ -16,24 +16,29 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 class Passthrough {
+
+  constructor(logger) {
+    this.logger = logger
+  }
+
   passData(data) {
-    console.log(`Passthrough data: (${data.toString('hex')}) ${data.toString()}`)
+    this.logger.info(`Passthrough data: (${data.toString('hex')}) ${data.toString()}`)
     this.clientStream.write(data.toString())
   }
 
-  setClientChannel(channel, data) {
+  setClientChannel(channel) {
     this.clientStream = channel
   }
 
-  init(options) {
-    this.options = options
+  executeCommand() {}
+
+  executeShell() {}
+
+  resizeTerm() {}
+
+  setTermInfo(info) {
+    this.options.termInfo = info
   }
-
-  executeCommand(clientStream, command) {}
-
-  executeShell(clientStream) {}
-
-  resizeTerm(info) {}
 }
 
 module.exports = Passthrough

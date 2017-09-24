@@ -16,13 +16,13 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 const Passthrough = require('../passthrough')
-const Docker = require('dockerode')
 
 class SSHDocker extends Passthrough {
 
-  init(options) {
-    super.init(options)
-    this.docker = new Docker({ socketPath: options.dockerSocket })
+  constructor(docker, options, logger) {
+    super(logger)
+    this.docker = docker
+    this.options = options
   }
 
   passData(data) {
@@ -54,14 +54,14 @@ class SSHDocker extends Passthrough {
     },
     (err, exec) => {
       if (err) {
-        console.log(`container exec error! ${err}`)
+        this.logger.error(`container exec error! ${err}`)
       }
 
       this.exec = exec
 
       exec.start({ stdin: true, Tty: true }, (execErr, stream) => {
         if (err) {
-          console.log(`exec start error! ${execErr}`)
+          this.logger.error(`exec start error! ${execErr}`)
         }
 
         this.containerStream = stream
@@ -71,16 +71,16 @@ class SSHDocker extends Passthrough {
         });
 
         stream.on('error', (streamErr) => {
-          console.log(`container exec stream error ${streamErr}`)
+          this.logger.error(`container exec stream error ${streamErr}`)
           this.closeStream(clientStream)
         })
 
         stream.on('end', () => {
-          console.log('container exec end')
+          this.logger.info('container exec end')
           this.closeStream(clientStream)
         })
 
-        stream.write(`# SSH-PASSTHROUGH v${this.options.version}\n`);
+        stream.write(`# SSH-PASSTHROUGH v${this.options.version}\n`)
         stream.write('export TERM=linux;\necho\n')
 
         if (this.options.termInfo) {
@@ -92,10 +92,7 @@ class SSHDocker extends Passthrough {
 
   setUserAndContainerName(str) {
     const userData = str.split(this.options.separator, 2)
-
-    console.log(`container: ${userData[0]}`)
-    console.log(`user: ${userData[1]}`)
-
+    this.logger.debug(`container: ${userData[0]}, user: ${userData[1]}`)
     this.containerName = userData[0]
   }
 
