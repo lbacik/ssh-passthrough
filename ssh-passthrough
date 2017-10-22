@@ -17,22 +17,24 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 const program = require('commander')
-const fs = require('fs')
 const Server = require('ssh2').Server
 const pjson = require('./package.json')
-const PassthroughFactory = require('./src/passthrough/factory')
+const Provider = require('./src/provider')
 const SshPassthroughListener = require('./src/ssh-server-listener.js')
 const winston = require('winston');
 
 const VERSION = pjson.version
 const DEFAULT_PORT = 22
 const DEFAULT_ADDRESS = '127.0.0.1'
-const DEFAULT_SHELL = '/bin/sh'
 const DEFAULT_TARGET = 'shell'
 const DEFAULT_SERVER_KEY_FILE = 'server-key'
-
 const DEFAULT_DOCKER_SOCKET = '/var/run/docker.sock'
-const DEFAULT_DOCKER_SEPARATOR = '/'
+const DEFAULT_COMBINE_USERNAME_SEPARATOR = '/'
+
+const DEFAULT_SHELL = process.env.SHELL || '/bin/sh'
+const DEFAULT_AUTH_METHOD = process.env.AUTH_METHOD || 'password'
+const AUTH_USER = process.env.AUTH_USER || null
+const AUTH_PASS = process.env.AUTH_PASS || null
 
 const logger = new (winston.Logger)({
   transports: [
@@ -49,33 +51,44 @@ program
   .option('--target [target]', '', DEFAULT_TARGET)
   .option('-s, --shell [shell]', '', DEFAULT_SHELL)
   .option('--docker-socket [socket]', '', DEFAULT_DOCKER_SOCKET)
-  .option('--docker-separator [separator]', '', DEFAULT_DOCKER_SEPARATOR)
+  .option('--combine-username', '')
+  .option('--combine-username-separator [separator]', '', DEFAULT_COMBINE_USERNAME_SEPARATOR)
+  .option('--auth [method]', '', DEFAULT_AUTH_METHOD)
+  .option('--auth-password-user [user]', '', AUTH_USER)
+  .option('--auth-password-pass [password]', '', AUTH_PASS)
   .parse(process.argv)
 
-const passthroughOptions = {
-  target: program.target,
-  shell: program.shell,
-  version: VERSION,
-  dockerSocket: program.dockerSocket,
-  dockerSeparator: program.dockerSeparator,
-}
-
-const serverPrvKey = program.serverPrvKey
 const serverPort = program.port
 const serverAddress = program.address
-let hostPrvKey
 
-try {
-  hostPrvKey = fs.readFileSync(serverPrvKey)
-} catch (e) {
-  logger.error(e)
+const provider = new Provider(
+  VERSION,
+  program,
+  logger
+)
+
+const passthrough = provider.passthrough()
+const authMethod = provider.authMethod()
+const hostPrvKey = provider.hostPrvKey()
+
+let usernameSeparator
+if (program.combineUsername === true) {
+  usernameSeparator = program.combineUsernameSeparator
+}
+const listenerOptions = {
+  combineUsernameSeparator: usernameSeparator
 }
 
 new Server({
   hostKeys: [hostPrvKey],
 }, (client) => {
   const sshPassthroughListener =
-      new SshPassthroughListener(passthroughOptions, PassthroughFactory, logger)
+    new SshPassthroughListener(
+      listenerOptions,
+      passthrough,
+      authMethod,
+      logger
+    )
   sshPassthroughListener.connectionRequest(client)
 }).listen(serverPort, serverAddress, () => {
   logger.info(`Listening on port ${serverAddress}:${serverPort}`)
