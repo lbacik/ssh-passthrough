@@ -55,43 +55,47 @@ class SSHDocker extends Passthrough {
     (err, exec) => {
       if (err) {
         this.logger.error(`container exec error! ${err}`)
+        clientStream.writeln(`Cannot conect to container ${this.containerName} `);
+        this.closeStream(clientStream)
+      } else {
+        this.exec = exec
+        exec.start({ stdin: true, Tty: true }, (execErr, containerStream) => {
+          if (execErr) {
+            this.logger.error(`exec start error! ${execErr}`)
+          }
+          this.comunicationHandler(containerStream, clientStream)
+        })
       }
-
-      this.exec = exec
-
-      exec.start({ stdin: true, Tty: true }, (execErr, stream) => {
-        if (err) {
-          this.logger.error(`exec start error! ${execErr}`)
-        }
-
-        this.containerStream = stream
-
-        stream.on('data', (data) => {
-          clientStream.write(data.toString())
-        });
-
-        stream.on('error', (streamErr) => {
-          this.logger.error(`container exec stream error ${streamErr}`)
-          this.closeStream(clientStream)
-        })
-
-        stream.on('end', () => {
-          this.logger.info('container exec end')
-          this.closeStream(clientStream)
-        })
-
-        stream.write(`# SSH-PASSTHROUGH v${this.options.version}\n`)
-        stream.write('export TERM=linux;\necho\n')
-
-        if (this.options.termInfo) {
-          this.resizeTerm(this.options.termInfo)
-        }
-      })
     })
   }
 
+  comunicationHandler(containerStream, clientStream) {
+    this.containerStream = containerStream
+
+    containerStream.on('data', (data) => {
+      clientStream.write(data.toString())
+    });
+
+    containerStream.on('error', (streamErr) => {
+      this.logger.error(`container exec stream error ${streamErr}`)
+      this.closeStream(clientStream)
+    })
+
+    containerStream.on('end', () => {
+      this.logger.info('container exec end')
+      this.closeStream(clientStream)
+    })
+
+    containerStream.write(`# SSH-PASSTHROUGH v${this.options.version}\n`)
+    containerStream.write('export TERM=linux;\necho\n')
+
+    if (this.options.termInfo) {
+      this.resizeTerm(this.options.termInfo)
+    }
+  }
+
   setUserAndContainerName(str) {
-    const userData = str.split(this.options.separator, 2)
+    const userData = str.split(this.options.dockerSeparator, 2)
     this.logger.debug(`container: ${userData[0]}, user: ${userData[1]}`)
     this.containerName = userData[0]
   }
