@@ -38,7 +38,7 @@ Example of connecting to the particular "container" (where "container" is a cont
 Method can be chosen by AUTH_METHOD environment variable or "--auth" command line option.
 
 * none - NO AUTHENTICATION! You can ommit the "user" part in connection string.
-* password - require to be specified "user" and "password" (as an env variable or through the command line option). Please notice that this user and pass will allow to connact to ALL of yours containers (there is no "per container" configuration available yet)!
+* password (default) - require to be specified "user" and "password" (as an env variable or through the command line option). Please notice that this user and pass will allow to connect to ALL of yours containers (there is no "per container" configuration available yet)!
 
 ## Future plans
 
