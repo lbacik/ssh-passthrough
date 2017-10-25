@@ -17,14 +17,11 @@
 
 class SshPassthroughListener {
 
-  constructor(options, PassthroughFactory, logger) {
+  constructor(options, passthrough, authMethod, logger) {
     this.options = options
+    this.passthrough = passthrough
+    this.authMethod = authMethod
     this.logger = logger
-    this.passthrough = PassthroughFactory.create(
-      this.options.target,
-      this.options,
-      this.logger
-    )
   }
 
   connectionRequest(client) {
@@ -32,44 +29,65 @@ class SshPassthroughListener {
     this.logger.debug('Client connected!')
 
     client.on('authentication', (ctx) => {
-      this.userStr = ctx.username
-      ctx.accept()
-      this.logger.debug(`client authenticated - user: ${this.userStr}`)
+      this.authenticationHandler(ctx)
     }).on('ready', () => {
       client.on('session', (accept, reject) => {
-        const session = accept()
-
-        session.on('pty', (accept, reject, info) => {
-          accept()
-          this.termInfo = info
-          this.passthrough.setTermInfo(info)
-        });
-
-        session.on('window-change', (accept, reject, info) => {
-          this.passthrough.resizeTerm(info)
-        });
-
-        session.once('exec', (accept, reject, info) => {
-          const channel = accept()
-          this.passthrough.setClientChannel(channel, this.userStr)
-          this.passthrough.executeCommand(channel, info.command)
-          this.execute(channel, this.passthrough)
-        });
-
-        session.on('shell', (accept, reject) => {
-          const channel = accept()
-          this.passthrough.setClientChannel(channel, this.userStr)
-          this.passthrough.executeShell(channel)
-          this.execute(channel, this.passthrough)
-        });
-
-        session.on('signal', (accept, reject, info) => {
-          this.logger.debug(`session signal: ${info.name}`)
-        })
+        this.sessionHandler(accept, reject)
       })
     }).on('end', () => {
       this.logger.info('Client disconnected')
     });
+  }
+
+  authenticationHandler(ctx) {
+    this.userStr = ctx.username
+
+    const overrideValues = {}
+    if (this.options.combineUsernameSeparator) {
+      overrideValues.username = this.extractUsername(ctx.username)
+    }
+
+    const result = this.authMethod.auth(ctx, overrideValues)
+
+    if (result === true) {
+      ctx.accept()
+      this.logger.debug(`client authenticated - user: ${ctx.username}`)
+    } else {
+      ctx.reject()
+      this.logger.error(`client authorisation failed - user: ${ctx.username}`)
+    }
+  }
+
+  sessionHandler(accept, reject) {
+    const session = accept()
+
+    session.on('pty', (accept, reject, info) => {
+      accept()
+      this.termInfo = info
+      this.passthrough.setTermInfo(info)
+    });
+
+    session.on('window-change', (accept, reject, info) => {
+      this.passthrough.resizeTerm(info)
+    });
+
+    session.once('exec', (accept, reject, info) => {
+      const channel = accept()
+      this.passthrough.setClientChannel(channel, this.userStr)
+      this.passthrough.executeCommand(channel, info.command)
+      this.execute(channel, this.passthrough)
+    });
+
+    session.on('shell', (accept, reject) => {
+      const channel = accept()
+      this.passthrough.setClientChannel(channel, this.userStr)
+      this.passthrough.executeShell(channel)
+      this.execute(channel, this.passthrough)
+    });
+
+    session.on('signal', (accept, reject, info) => {
+      this.logger.debug(`session signal: ${info.name}`)
+    })
   }
 
   execute(channel, passthrough) {
@@ -84,6 +102,16 @@ class SshPassthroughListener {
     channel.on('end', () => {
       this.logger.debug('channel end...')
     });
+  }
+
+  extractUsername(username) {
+    let result = ''
+    const userData = username.split(this.options.combineUsernameSeparator, 2)
+    this.logger.debug(`extract username - additional data: ${userData[0]}, username: ${userData[1]}`)
+    if (userData[1] !== undefined) {
+      result = userData[1]
+    }
+    return result
   }
 }
 
