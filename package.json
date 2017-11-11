@@ -1,6 +1,6 @@
 {
   "name": "ssh-passthrough",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "",
   "main": "ssh-passthrough",
   "dependencies": {
@@ -9,6 +9,7 @@
     "crypto": "^1.0.1",
     "dockerode": "^2.5.0",
     "ssh2": "^0.5.5",
+    "ssh2-streams": "^0.1.20",
     "winston": "^2.3.1"
   },
   "devDependencies": {
