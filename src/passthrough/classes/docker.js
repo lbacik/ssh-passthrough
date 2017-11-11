@@ -55,7 +55,7 @@ class SSHDocker extends Passthrough {
     (err, exec) => {
       if (err) {
         this.logger.error(`container exec error! ${err}`)
-        clientStream.writeln(`Cannot conect to container ${this.containerName} `);
+        clientStream.write(`Cannot conect to container ${this.containerName} `);
         this.closeStream(clientStream)
       } else {
         this.exec = exec
@@ -86,8 +86,8 @@ class SSHDocker extends Passthrough {
       this.closeStream(clientStream)
     })
 
-    containerStream.write(`# SSH-PASSTHROUGH v${this.options.version}\n`)
-    containerStream.write('export TERM=linux;\necho\n')
+    containerStream.write(`# SSH-PASSTHROUGH v${this.options.version}\r\n`)
+    containerStream.write('export TERM=linux;\r\n')
 
     if (this.options.termInfo) {
       this.resizeTerm(this.options.termInfo)
