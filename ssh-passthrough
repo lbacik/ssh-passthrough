@@ -35,6 +35,7 @@ const DEFAULT_SHELL = process.env.SHELL || '/bin/sh'
 const DEFAULT_AUTH_METHOD = process.env.AUTH_METHOD || 'password'
 const AUTH_USER = process.env.AUTH_USER || null
 const AUTH_PASS = process.env.AUTH_PASS || null
+const AUTH_AUTHORIZED_KEYS = process.env.AUTHORIZED_KEYS || null
 
 const logger = new (winston.Logger)({
   transports: [
@@ -56,6 +57,7 @@ program
   .option('--auth [method]', '', DEFAULT_AUTH_METHOD)
   .option('--auth-password-user [user]', '', AUTH_USER)
   .option('--auth-password-pass [password]', '', AUTH_PASS)
+  .option('--auth-authorized-keys [file]', '', AUTH_AUTHORIZED_KEYS)
   .parse(process.argv)
 
 const serverPort = program.port
@@ -76,7 +78,8 @@ if (program.combineUsername === true) {
   usernameSeparator = program.combineUsernameSeparator
 }
 const listenerOptions = {
-  combineUsernameSeparator: usernameSeparator
+  combineUsernameSeparator: usernameSeparator,
+  authMethod: program.auth
 }
 
 new Server({

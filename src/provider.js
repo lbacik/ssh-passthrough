@@ -55,6 +55,7 @@ class Provider {
         {
           username: this.program.authPasswordUser,
           password: this.program.authPasswordPass,
+          authorizedKeys: this.program.authAuthorizedKeys,
         }
       )
       if (this.program.auth === 'none') {
