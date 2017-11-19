@@ -17,6 +17,7 @@
 
 const NoAuth = require('./classes/noauth')
 const SimpleAuth = require('./classes/simpleauth')
+const PublicKey = require('./classes/publickey')
 
 class AuthMethodFactory {
 
@@ -34,6 +35,9 @@ class AuthMethodFactory {
           throw Error('Password for Password authentication cannot be null')
         }
         obj = new SimpleAuth(options.username, options.password)
+        break
+      case 'publickey':
+        obj = new PublicKey(options.authorizedKeys)
         break
       default:
         throw new Error('Unknown Auth Type')

@@ -39,6 +39,7 @@ Method can be chosen by AUTH_METHOD environment variable or "--auth" command lin
 
 * none - NO AUTHENTICATION! You can ommit the "user" part in connection string.
 * password (default) - require to be specified "user" and "password" (as an env variable or through the command line option). Please notice that this user and pass will allow to connect to ALL of yours containers (there is no "per container" configuration available yet)!
+* publickey - is required the "--auth-authorized-keys" command line option or "AUTHORIZED_KEYS" env variable to be set, access will be granted to all users whose public keys have been added to the indicated file.
 
 ## Future plans
 

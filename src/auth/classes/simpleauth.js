@@ -23,11 +23,15 @@ class SimpleAuth {
 
   auth(context, overrideValues) {
     let result = false
-    let username = context.username
-    if (overrideValues.username) {
+    let username
+    if (context && context.username) {
+      username = context.username
+    }
+
+    if (overrideValues && overrideValues.username) {
       username = overrideValues.username
     }
-    if (username === this.user && context.password === this.pass) {
+    if (username === this.user && context && context.password === this.pass) {
       result = true
     }
     return result
