@@ -47,14 +47,18 @@ class SshPassthroughListener {
       overrideValues.username = this.extractUsername(ctx.username)
     }
 
-    const result = this.authMethod.auth(ctx, overrideValues)
-
-    if (result === true) {
-      ctx.accept()
-      this.logger.debug(`client authenticated - user: ${ctx.username}`)
+    let result = false
+    if (ctx.method === this.options.authMethod) {
+      result = this.authMethod.auth(ctx, overrideValues)
+      if (result === true) {
+        ctx.accept()
+        this.logger.debug(`client authenticated - user: ${ctx.username}, auth method: ${ctx.method}`)
+      } else {
+        ctx.reject()
+        this.logger.error(`client authorisation failed - user: ${ctx.username}, auth method: ${ctx.method}`)
+      }
     } else {
       ctx.reject()
-      this.logger.error(`client authorisation failed - user: ${ctx.username}`)
     }
   }
 
