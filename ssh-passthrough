@@ -69,7 +69,6 @@ const provider = new Provider(
   logger
 )
 
-const passthrough = provider.passthrough()
 const authMethod = provider.authMethod()
 const hostPrvKey = provider.hostPrvKey()
 
@@ -88,7 +87,7 @@ new Server({
   const sshPassthroughListener =
     new SshPassthroughListener(
       listenerOptions,
-      passthrough,
+      provider,
       authMethod,
       logger
     )
