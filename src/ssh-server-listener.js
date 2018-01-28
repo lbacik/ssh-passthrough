@@ -17,9 +17,9 @@
 
 class SshPassthroughListener {
 
-  constructor(options, passthrough, authMethod, logger) {
+  constructor(options, provider, authMethod, logger) {
     this.options = options
-    this.passthrough = passthrough
+    this.passthrough = provider.passthrough()
     this.authMethod = authMethod
     this.logger = logger
   }
