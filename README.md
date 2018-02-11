@@ -6,9 +6,9 @@
 
 This application has been inspired by https://github.com/jeroenpeeters/docker-ssh and genarally it has the same goal - to give the oportunity to connect to docker containers via ssh.
 
-The reason why I haven't just done fork from jeroenpeeters' docker-ssh project is that he used the "coffee". I decided to rewrite this functionality in "pure" javascript.
+The reason why I just haven't forked from jeroenpeeters' docker-ssh project is that he had used "coffee", and I prefer rather "pure" javascript.
 
-The main differnce between the original project and this one is that here you don't have to use "ssh container" for each container you want to access via ssh - here you can connect with all your containers using one ssh-through container!
+The main differnce between the original project and this one is that here you don't have to use "ssh container" for each container you want to access via ssh - here you can connect with all your containers through one ssh-passthrough container!
 
 The idea is to use the "user" part from ssh login to pass container and user name you want to connect to through ssh-passthrough container:
 
@@ -16,7 +16,7 @@ The idea is to use the "user" part from ssh login to pass container and user nam
 
 Very similar idea has been mentioned in https://github.com/jeroenpeeters/docker-ssh/issues/4 - but unfortunately there is no more information from the author since the time of that discussion, so  it is unknown if this functionality is going to be finally included in the docker-ssh or not. 
 
-At first I have just tryied to investigate the problem with using one container to handle all ssh connections, just of curiosity and because I have been looking for  a project to practice programming in node.js. But once this experiment has started to work I decided to publish it.
+At first I have just tryied to investigate the problem with using one container to handle all ssh connections - just of curiosity and because I have been looking for  a project to practice programming in node.js. But once this experiment has started to work I decided to publish it.
 
 ## How to use it
 
