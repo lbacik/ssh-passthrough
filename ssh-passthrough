@@ -46,19 +46,62 @@ const logger = new (winston.Logger)({
 
 program
   .version(VERSION)
-  .option('--server-prv-key [path]', '', DEFAULT_SERVER_KEY_FILE)
-  .option('-a, --address [ip]', '', DEFAULT_ADDRESS)
-  .option('-p, --port [port]', '', DEFAULT_PORT)
-  .option('--target [target]', '', DEFAULT_TARGET)
-  .option('-s, --shell [shell]', '', DEFAULT_SHELL)
-  .option('--docker-socket [socket]', '', DEFAULT_DOCKER_SOCKET)
-  .option('--combine-username', '')
-  .option('--combine-username-separator [separator]', '', DEFAULT_COMBINE_USERNAME_SEPARATOR)
-  .option('--auth [method]', '', DEFAULT_AUTH_METHOD)
-  .option('--auth-password-user [user]', '', AUTH_USER)
-  .option('--auth-password-pass [password]', '', AUTH_PASS)
-  .option('--auth-authorized-keys [file]', '', AUTH_AUTHORIZED_KEYS)
-  .parse(process.argv)
+  .description(`ssh "passthrough" server for containers environments, version: ${VERSION}`)
+  .option('--server-prv-key [path]',
+    `ssh private key used by ssh-passthrough server (default: ${DEFAULT_SERVER_KEY_FILE})`,
+    DEFAULT_SERVER_KEY_FILE
+  )
+  .option('-a, --address [ip]',
+    `ip address the server should use (default: ${DEFAULT_ADDRESS})`,
+    DEFAULT_ADDRESS
+  )
+  .option('-p, --port [port]',
+    `port the server should listening on (default: ${DEFAULT_PORT})`,
+    DEFAULT_PORT
+  )
+  .option('--target [target]',
+    `(1) "shell" (not very useful, only for tests right now), (2) "docker" (default: ${DEFAULT_TARGET})`,
+    DEFAULT_TARGET
+  )
+  .option('-s, --shell [shell]',
+    `shell/process that should be started on "target" to handle the connection (default: ${DEFAULT_SHELL})`,
+    DEFAULT_SHELL
+  )
+  .option('--docker-socket [socket]',
+    `docker api endpoint (default: ${DEFAULT_DOCKER_SOCKET})`,
+    DEFAULT_DOCKER_SOCKET
+  )
+  .option('--combine-username',
+    'whether the user part of ssh connection string contains the container name or not (makes sense when auth=password)'
+  )
+  .option('--combine-username-separator [separator]',
+    `separator used to separate the extra data (container name) and username in ssh login string (default: ${DEFAULT_COMBINE_USERNAME_SEPARATOR})`,
+    DEFAULT_COMBINE_USERNAME_SEPARATOR
+  )
+  .option('--auth [method]',
+    `authentication method used by server: (1) "none", (2) "password" or (3) "publickey" (default: ${DEFAULT_AUTH_METHOD})`,
+    DEFAULT_AUTH_METHOD
+  )
+  .option('--auth-password-user [user]',
+    'username used when password authentication method has been chosen',
+    AUTH_USER
+  )
+  .option('--auth-password-pass [password]',
+    'password used when password authentication method has been chosen',
+    AUTH_PASS
+  )
+  .option('--auth-authorized-keys [file]',
+    'file contains allowed users ssh public keys used when pubilckey authentication method has been chosen',
+    AUTH_AUTHORIZED_KEYS
+  )
+
+program.on('--help', () => {
+  console.log()
+  console.log('for more information please visit: https://github.com/lbacik/ssh-passthrough')
+  console.log()
+})
+
+program.parse(process.argv)
 
 const serverPort = program.port
 const serverAddress = program.address
