@@ -1,7 +1,11 @@
 {
   "name": "ssh-passthrough",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/lbacik/ssh-passthrough"
+  },
   "main": "ssh-passthrough",
   "dependencies": {
     "buffer-equal-constant-time": "^1.0.1",
@@ -14,15 +18,19 @@
   },
   "devDependencies": {
     "chai": "^4.1.2",
-    "eslint": "^4.5.0",
+    "eslint": "^5.12.1",
     "eslint-config-airbnb-base": "^11.3.2",
-    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-import": "^2.15.0",
     "mocha": "^4.0.1",
     "sinon": "^4.1.2"
   },
   "scripts": {
-    "test": "mocha || true"
+    "test": "mocha --recursive test"
   },
-  "author": "Lukasz Bacik",
-  "license": "GPL 2"
+  "author": {
+    "name" : "Lukasz Bacik",
+    "email" : "mail@luka.sh",
+    "url" : "http://luka.sh"
+  },
+  "license": "GPL-2.0-only"
 }
